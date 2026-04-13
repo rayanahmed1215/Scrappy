@@ -1,4 +1,4 @@
-from router import route_query
+from router.router import route_query
 from models.local import run_local_model
 from models.remote import run_remote_model
 
@@ -12,6 +12,8 @@ def main():
 
         route = route_query(query)
 
+
+        
         if route == "local":
             response = run_local_model(query)
         else:
