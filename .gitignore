@@ -1,4 +1,87 @@
+# ======================
+# Python basics
+# ======================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ======================
+# IDEs
+# ======================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ======================
+# OS junk
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Scrappy-specific (IMPORTANT)
+# ======================
+
+# Embeddings / vector storage
+embeddings/
+*.npy
+*.npz
+*.pkl
+*.faiss
+*.index
+
+# Memory / persistence layer (if local JSON DB)
+memory.json
+memories.json
+data/
+*.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Runtime / temp files
+tmp/
+temp/
+.cache/
+
+# ======================
+# Environment variables
+# ======================
+.env
+.env.*
+!.env.example
+
+# ======================
+# Model / ML caches
+# ======================
+.huggingface/
+.cache/huggingface/
+torch/
+transformers_cache/
+
+# Sentence transformers cache
+.sentence_transformers/
+
+# ======================
+# Large model files (if you ever download locally)
+# ======================
+*.bin
+*.gguf
+*.pt
+*.safetensors

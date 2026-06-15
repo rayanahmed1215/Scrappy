@@ -62,3 +62,10 @@ Return responses through a single interface
 Next Planned Evolution
 Embedding system in order to compare responses for route path
 
+# Thoughts
+The comparsion is in a uncertain state right now as doing the sentence transformer would take 
+O(n) which is too slow for n requests to compare to. Maybe using a database would fix this
+
+Next is what exactly occurs if no similarity occurs and there arent enough resources
+or if you just start out making a profile what are you comparing?
+there are uncertainitys but for now we will start with a basic system of embeddings
