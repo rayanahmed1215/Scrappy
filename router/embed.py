@@ -1,16 +1,20 @@
-# router/embedder.py
 from openai import OpenAI
+import os
 
-client = OpenAI()
+
 # Simple Embedder class to generate embeddings for routing
-# Uses text-embedding-3-small model for efficient embedding generation
+# Uses all-MiniLM-L6-v2 model for efficient embedding generation
 
 class Embedder:
-    def __init__(self, model="text-embedding-3-small"):
+    def __init__(self, model="sentence-transformers/all-MiniLM-L6-v2"):
         self.model = model
+        self.client = OpenAI(
+            base_url = "https://openrouter.ai/api/v1",
+            api_key = os.getenv("OPENROUTER_API_KEY")
+        )
 
-    def embed(self, text: str):
-        res = client.embeddings.create(
+    def embed(self, text: str) -> list[float]:
+        res = self.client.embeddings.create(
             model=self.model,
             input=text
         )

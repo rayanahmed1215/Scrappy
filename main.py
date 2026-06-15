@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from router.router import Router
 from models.local import run_local_model
 from models.remote import run_remote_model
+
 
 # Main entry point for Scrappy CLI
 def main():

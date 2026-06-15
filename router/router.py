@@ -1,13 +1,14 @@
 import numpy as np
-import embed
-import index
+from router.embed import Embedder
+from router.index import VectorIndex
 
 # Second Draft for routing using embeddings
 
 class Router: 
     def __init__(self):
-        self.embedder = embed.Embedder()
-        self.index = index.VectorIndex(dim=1536)  # Assuming 1536-dim embeddings
+        self.embedder = Embedder()
+        embedding_dim = 384
+        self.index = VectorIndex(dim=embedding_dim)  
 
         # Add Basic routing examples to the index
         self.index.add(
