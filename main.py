@@ -1,4 +1,4 @@
-from router.router import route_query
+from router.router import Router
 from models.local import run_local_model
 from models.remote import run_remote_model
 
@@ -16,7 +16,7 @@ def main():
             break
 
         # Route query to decide which model to use (local or remote)
-        route = route_query(query)
+        route = Router().route(query)
 
         # Run model based on routing decision
         if route == "local":
