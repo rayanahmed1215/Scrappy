@@ -11,11 +11,13 @@ class VectorIndex:
 
     def add(self, vector, meta):
         vec = np.array([vector]).astype("float32")
+        faiss.normalize_L2(vec)
         self.index.add(vec)
         self.metadata.append(meta)
 
     def search(self, vector, k=3):
         vec = np.array([vector]).astype("float32")
+        faiss.normalize_L2(vec)
 
         D, I = self.index.search(vec, k)
 
