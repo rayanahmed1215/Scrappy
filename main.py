@@ -15,10 +15,16 @@ def main():
     router.add_rule("Run this locally", "local")
     router.add_rule("Use this without an API", "local")
     router.add_rule("Quick response", "local")
+    router.add_rule("Simple task", "local")
+    router.add_rule("Basic question", "local")
+    router.add_rule("Greetings", "local")
     # Remote routing examples
     router.add_rule("Use a large model", "remote")
     router.add_rule("detailed explanation", "remote")
     router.add_rule("complex reasoning", "remote")
+    router.add_rule("long-form content", "remote")
+    router.add_rule("advanced analysis", "remote")
+    router.add_rule("API call", "remote")
 
 
     # Infinite loop for continuous user interaction
