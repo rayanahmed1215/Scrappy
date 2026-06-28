@@ -12,13 +12,13 @@ def main():
     # Temporary: Add basic routing examples to the index
     router = Router()
     # Local routing examples
-    router.add_rule("What is the weather today?", "local")
-    router.add_rule("Tell me a joke.", "local")
-    router.add_rule("What is the time?", "local")
+    router.add_rule("Run this locally", "local")
+    router.add_rule("Use this without an API", "local")
+    router.add_rule("Quick response", "local")
     # Remote routing examples
-    router.add_rule("What is the capital of France?", "remote")
-    router.add_rule("How do I train a neural network?", "remote")
-    router.add_rule("Explain quantum mechanics.", "remote")
+    router.add_rule("Use a large model", "remote")
+    router.add_rule("detailed explanation", "remote")
+    router.add_rule("complex reasoning", "remote")
 
 
     # Infinite loop for continuous user interaction
@@ -32,7 +32,7 @@ def main():
             break
 
         # Route query to decide which model to use (local or remote)
-        route = Router().route(query)
+        route = router.route(query)
 
         # Run model based on routing decision
         if route == "local":
