@@ -10,16 +10,11 @@ class Router:
         embedding_dim = 384
         self.index = VectorIndex(dim=embedding_dim)  
 
-        # Add Basic routing examples to the index
-        self.index.add(
-        self.embedder.embed("execute inference on local machine without API calls"),
-        {"route": "local"}
-        )
+    # Add a new routing rule to the index with its corresponding embedding
+    def add_rule(self, query: str, route: str): 
+        query_vec = self.embedder.embed(query)
+        self.index.add(query_vec, {"route": route})
 
-        self.index.add(
-        self.embedder.embed("execute inference using cloud API or remote large model"),
-        {"route": "remote"}
-        )
 
     # Route query based on embedding similarity to examples in the index 
     def route(self, query: str) -> str:
