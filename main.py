@@ -9,6 +9,18 @@ from models.remote import run_remote_model
 # Main entry point for Scrappy CLI
 def main():
 
+    # Temporary: Add basic routing examples to the index
+    router = Router()
+    # Local routing examples
+    router.add_rule("What is the weather today?", "local")
+    router.add_rule("Tell me a joke.", "local")
+    router.add_rule("What is the time?", "local")
+    # Remote routing examples
+    router.add_rule("What is the capital of France?", "remote")
+    router.add_rule("How do I train a neural network?", "remote")
+    router.add_rule("Explain quantum mechanics.", "remote")
+
+
     # Infinite loop for continuous user interaction
     while True:
 
