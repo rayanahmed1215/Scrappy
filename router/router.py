@@ -1,23 +1,32 @@
-from typing import Callable
-import embed
 import numpy as np
+from router.embed import Embedder
+from router.index import VectorIndex
+
 # Second Draft for routing using embeddings
 
-# Main Function for routing a query 
-# Str -> embeds -> vector -> cosine similarity -> model call 
-def route_query(query: str)-> Callable[[str], str]:
-    query_vector = embed(query)
+class Router: 
+    def __init__(self):
+        self.embedder = Embedder()
+        embedding_dim = 384
+        self.index = VectorIndex(dim=embedding_dim)  
 
-    documented_vector = np.array()
-    compare_vectors(query_vector, document_vector)
-    return
-
-def embed_vector(query: str) -> np.array:
-
-
-    return 
-
-def compare_vectors(compare_vector1: np.array, compare_vector2: np.array) -> int:
+    # Add a new routing rule to the index with its corresponding embedding
+    def add_rule(self, query: str, route: str): 
+        query_vec = self.embedder.embed(query)
+        self.index.add(query_vec, {"route": route})
 
 
-    return 
+    # Route query based on embedding similarity to examples in the index 
+    def route(self, query: str) -> str:
+        query_vec = self.embedder.embed(query)
+        results = self.index.search(query_vec, k=1)
+
+        if not results:
+            return "remote"
+        
+        best = results[0]
+
+        if best["score"] < 0.6:
+            return "remote"
+       
+        return best["meta"]["route"]
