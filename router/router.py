@@ -18,6 +18,8 @@ class Router:
 
     # Route query based on embedding similarity to examples in the index 
     def route(self, query: str) -> str:
+
+        
         query_vec = self.embedder.embed(query)
         results = self.index.search(query_vec, k=1)
 
