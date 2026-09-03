@@ -1,4 +1,3 @@
-import numpy as np
 from router.embed import Embedder
 from router.index import VectorIndex
 

@@ -1,4 +1,4 @@
-class intentClassify:
+class IntentClassifier:
 
     def classify_intent(self, query: str) -> str:
 
