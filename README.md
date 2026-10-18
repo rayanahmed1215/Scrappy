@@ -166,6 +166,8 @@ These responses are placeholders. The example demonstrates the routing decision 
 * Design a system that can grow as machines are added
 * Learn AI infrastructure and distributed-systems concepts through implementation
 
-## License
+  ## License
 
-See [LICENSE](LICENSE).
+   Scrappy is licensed under the GNU Affero General Public License v3.0 only
+   (AGPL-3.0-only). See [LICENSE](LICENSE). Contributors must sign the
+   Contributor License Agreement before pull requests can be merged.
