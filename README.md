@@ -1,89 +1,138 @@
 # Scrappy
 
-Scrappy is an experimental personal AI infrastructure project exploring how prompts can be routed across local models, remote models, and eventually a network of reusable computers.
+**Old computers. One AI cluster.**
 
-The long-term goal is to turn old laptops and desktops into coordinated worker nodes for AI inference, automation, and self-hosted services.
+Progress in AI has mostly come from adding more compute: bigger models, bigger data centers, bigger cloud bills. Scrappy takes the opposite approach. Instead of scaling up, it makes the most of the hardware people already own by pooling old laptops, desktops, and spare servers into a single local AI cluster.
 
-## Current Status
+Scrappy is an open-source, local-first AI infrastructure project. You send a query, and Scrappy decides how it should run, which machine should run it, and which models to use, so you don't have to pick models or paths by hand.
 
-Scrappy is currently an early proof of concept for semantic prompt routing.
+> **Status:** early development. The router is a working prototype, and the cluster is being built this semester as a team project with the RPI AI club (RPAI). See [Current status](#current-status).
 
-The current version includes:
+## Why Scrappy
 
-* An embedding-based semantic router
-* A FAISS vector index
-* Local-versus-remote route selection
-* A command-line interface
-* Placeholder local and remote execution handlers
+- **Use what you have.** Idle machines become shared compute instead of e-waste.
+- **Local-first.** Work runs on your own hardware whenever it makes sense. The cloud is optional and only used as an expansion, never a requirement.
+- **Private by default.** Your queries and data stay on machines you control.
+- **Grows with you.** Add a machine and the cluster gets more capable.
 
-The local and remote handlers currently return simulated responses. They allow the routing architecture to be developed and tested before real models and worker nodes are introduced.
-
-Distributed worker nodes, hardware-aware routing, real model inference, persistent storage, and user profiles are planned but not yet implemented.
-
-## The Idea
-
-Many people have old laptops and desktops sitting unused. Scrappy explores whether those machines can be connected into a personal compute cluster instead of relying entirely on cloud infrastructure or expensive new hardware.
-
-A completed version of Scrappy would evaluate an incoming task, inspect the available resources, and select an appropriate model or worker node.
-
-For example:
-
-* A simple request could be handled by a lightweight model running locally.
-* A complex request could be sent to a more capable machine or remote model.
-* A larger task could eventually be divided among multiple worker nodes.
-
-## Current Architecture
+## How it works
 
 ```text
-User
-  |
-  v
-main.py (CLI)
-  |
-  v
-router.py (Semantic Router)
-  |
-  +---> local.py  (Placeholder Local Handler)
-  |
-  +---> remote.py (Placeholder Remote Handler)
-  |
-  v
-Response
+            User query
+                 |
+                 v
+     +-----------------------+
+     |        Router         |   decides how the query should run
+     +-----------+-----------+
+                 |
+                 v
+     +-----------------------+
+     |        Cluster        |
+     |  +-----------------+  |
+     |  |    Scheduler    |<-+-- NodeWatch reports from every node
+     |  +--------+--------+  |
+     |           |           |
+     |   +-------+-------+   |
+     |   v       v       v   |
+     | Node 1  Node 2  Node 3|   each node runs a Workplace
+     +-----------+-----------+
+                 |
+                 v
+             Response
+
+  Observe   records what happened at every step
+  Context   gives models the right information
+  Adaptive  learns from Observe to improve future decisions
 ```
 
-## Core Components
+## Modules
 
-| Component          | Current purpose                                   |
-| ------------------ | ------------------------------------------------- |
-| `main.py`          | Runs the command-line interaction loop            |
-| `router/router.py` | Selects a local or remote route                   |
-| `router/embed.py`  | Converts prompts into vector embeddings           |
-| `router/index.py`  | Stores and searches normalized vectors with FAISS |
-| `models/local.py`  | Provides a placeholder for local inference        |
-| `models/remote.py` | Provides a placeholder for remote inference       |
+Scrappy is built as a set of modules. Each one works on its own with simple inputs and outputs, so they can be developed, tested, and swapped independently.
 
-## Semantic Routing
+| Module | What it does | Status |
+|---|---|---|
+| **Router** | Decides the best route for a query by comparing it to past queries and their routes | Working prototype |
+| **Cluster** | Tracks every machine, decides which one runs each task, and runs the models | In development |
+| **Observe** | Collects telemetry: route, model, node, latency, tokens, CPU/RAM/GPU use, errors, and outcomes | Planned |
+| **Context** | Stores, retrieves, and injects relevant context such as conversation history, files, and past outputs | Planned |
+| **Adaptive** | Learns from Observe data and user feedback to personalize routing and scheduling | Planned |
 
-Scrappy currently routes prompts using embedding similarity instead of relying entirely on keyword matching.
+### Router
 
-When the application starts, predefined examples for the local and remote routes are converted into embeddings and stored in a FAISS index. A new prompt is embedded and compared with those examples using cosine similarity.
+The router turns a query into an embedding and compares it with an index of example queries using FAISS. The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
 
-The closest example determines the route when its similarity score meets the configured confidence threshold. Prompts below that threshold default to the remote route.
+Planned improvements include confidence scoring and routing that accounts for privacy, cost, available hardware, latency, and which models are available.
 
-This implementation is experimental. Its accuracy is currently limited by the size and diversity of the example dataset.
+See [documentation/router.md](documentation/router.md) for details.
 
-## Planned Development
+### Cluster
 
-Future versions of Scrappy may include:
+Cluster combines your machines into one system. It is made of four components:
 
-* Real local-model inference
-* Remote worker-node communication
-* Hardware and workload monitoring
-* Intent and resource-aware routing
-* Persistent routing data
-* User-specific configuration
-* Multi-worker task coordination
-* Routing evaluation and automated tests
+| Component | Role |
+|---|---|
+| **NodeWatch** | Runs on every machine and reports its health, hardware, and current tasks. Written in Rust. |
+| **Scheduler** | Uses NodeWatch reports to decide which machine runs each task, based on what the task needs and how busy each node is. Reassigns work if a node goes down. |
+| **Workplace** | The environment where models run. Loads models onto a node and runs queries through them. Models working on the same query share one context. |
+| **Infrastructure** | Docker environments for simulated nodes, networking between machines, and a hardware testbed built from repurposed computers. |
+
+Cluster accepts model selection as an input, so it can come from simple rules, the user, or the Router.
+
+#### Cluster milestones
+
+| # | Milestone | Done when |
+|---|---|---|
+| 0 | **Simulated nodes.** Develop on one host, with Docker containers acting as nodes with their own CPU and memory limits. | Components talk over the network from the start. |
+| 1 | **NodeWatch on one node.** | It reliably reports CPU, RAM, and running tasks, and the values match the system. |
+| 2 | **Scheduler tracks and assigns.** | A submitted task runs on the node and the scheduler's record stays current. |
+| 3 | **Workplace runs a model.** | Queries sent through the scheduler return correct output across repeated runs. |
+| 4 | **Multiple nodes.** | Tasks are split across two nodes by load, and stopping one node reassigns its work. |
+| 5 | **Real hardware.** | The cluster works across two physical machines with the same capabilities as Milestone 4. |
+| 6 | **Shared context.** | A query passes through models on two nodes, and the second uses the first one's result. |
+
+## Current status
+
+**Working now**
+- Embedding-based router with a FAISS vector index
+- Local-versus-remote route selection with a confidence threshold
+- Command-line interface
+
+**In progress**
+- Cluster (NodeWatch, Scheduler, Workplace, Infrastructure), as the RPAI team project for Fall 2026
+- An intent layer for the router
+
+**Not yet implemented**
+- Real model inference. The local and remote handlers currently return placeholder responses so the routing can be developed and tested first.
+- Local embeddings. Embeddings currently come from an API through OpenRouter during prototyping and will be replaced with a local embedding model.
+- Observe, Context, and Adaptive
+
+## Roadmap
+
+| Phase | Focus | Modules |
+|---|---|---|
+| **V1: Orchestration** | Route queries and run them across machines | Router, Cluster |
+| **V2: Optimization** | Measure everything and improve performance | Observe, refactors |
+| **V3: Personalization** | Give models the right context and learn from use | Context, Adaptive |
+
+Longer term, Scrappy aims to split complex queries into subtasks that run in parallel across nodes, keep frequently used models ready on the right machines, and serve as shared local compute for other projects built on top of it.
+
+## Design principles
+
+- **Local-first.** Use local compute whenever it makes sense.
+- **Modular.** Each module works independently with clear inputs and outputs.
+- **Hardware-aware.** Decisions account for what each machine can actually do.
+- **Model-agnostic.** No dependence on a single model or provider.
+- **Clear-box.** Every routing decision and tool call should be visible and explainable.
+
+## Repository layout
+
+```text
+Scrappy/
+├── main.py            # CLI entry point
+├── router/            # Router: embeddings, FAISS index, routing logic
+├── models/            # Placeholder local and remote handlers
+└── documentation/     # Devlogs, design notes, and module docs
+```
 
 ## Setup
 
@@ -144,7 +193,7 @@ python main.py
 
 Enter `exit` or `quit` to stop the program.
 
-## Example
+### Example
 
 ```text
 You: Give me a quick greeting
@@ -156,18 +205,12 @@ Route: remote
 Scrappy: [REMOTE MODEL] Perform an advanced analysis of this dataset
 ```
 
-These responses are placeholders. The example demonstrates the routing decision rather than real model inference.
+These responses are placeholders. The example shows the routing decision, not real model output.
 
-## Project Goals
+## Contributing
 
-* Explore semantic and resource-aware AI routing
-* Run personal AI models with less cloud dependence
-* Reuse hardware that would otherwise sit unused
-* Design a system that can grow as machines are added
-* Learn AI infrastructure and distributed-systems concepts through implementation
+Scrappy Cluster is being built by a student team through RPAI, and contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow. All contributors must sign the [Contributor License Agreement](CLA.md) before their pull requests can be merged.
 
-  ## License
+## License
 
-   Scrappy is licensed under the GNU Affero General Public License v3.0 only
-   (AGPL-3.0-only). See [LICENSE](LICENSE). Contributors must sign the
-   Contributor License Agreement before pull requests can be merged.
+Scrappy is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only). See [LICENSE](LICENSE).
