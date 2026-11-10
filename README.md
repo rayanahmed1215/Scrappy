@@ -104,7 +104,7 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 - An intent layer for the router
 
 **Not yet implemented**
-- Real model inference. The local and remote handlers currently return placeholder responses so the routing can be developed and tested first.
+- Real model inference. The code, talk and refine handlers currently return placeholder responses so the routing can be developed and tested first.
 - Observe, Context, and Adaptive
 
 ## Roadmap
@@ -131,7 +131,7 @@ Longer term, Scrappy aims to split complex queries into subtasks that run in par
 Scrappy/
 ├── main.py            # CLI entry point
 ├── router/            # Router: embeddings and routing logic
-├── models/            # Placeholder local and remote handlers
+├── models/            # Placeholder handlers for the code, talk and refine routes
 └── documentation/     # Devlogs, design notes, and module docs
 ```
 
@@ -177,16 +177,20 @@ On the first run, fastembed downloads the embedding model (about 90 MB). After t
 ### Example
 
 ```text
-You: Give me a quick greeting
-Route: local
-Scrappy: [LOCAL MODEL] Give me a quick greeting
+You: Implement binary search in C
+Route: code (code ahead of refine by 0.25)
+Scrappy: [CODE MODEL] Implement binary search in C
 
-You: Perform an advanced analysis of this dataset
-Route: remote
-Scrappy: [REMOTE MODEL] Perform an advanced analysis of this dataset
+You: Write a five paragraph essay on climate policy
+Route: refine (refine ahead of code by 0.31)
+Scrappy: [REFINED] [DRAFT] Write a five paragraph essay on climate policy
+
+You: hmm
+Route: talk (near tie between talk and refine (margin 0.06 < 0.1), fell back to talk)
+Scrappy: [TALK MODEL] hmm
 ```
 
-These responses are placeholders. The example shows the routing decision, not real model output.
+These responses are placeholders. The example shows the routing decision and its reason, not real model output.
 
 ## Contributing
 

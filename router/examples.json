@@ -1,0 +1,26 @@
+{
+  "code": [
+    "Write a Python function",
+    "Fix this bug in my code",
+    "Why does this program throw an error",
+    "Explain what this code does",
+    "Refactor this class",
+    "Write a SQL query"
+  ],
+  "talk": [
+    "Hi, how are you",
+    "What is the capital of a country",
+    "Tell me a fun fact",
+    "Quick question about history",
+    "What does this word mean",
+    "Recommend a movie"
+  ],
+  "refine": [
+    "Write an essay about",
+    "Draft a detailed report on",
+    "Write a polished cover letter",
+    "Create a thorough project plan",
+    "Write a long blog post",
+    "Improve and proofread this document"
+  ]
+}

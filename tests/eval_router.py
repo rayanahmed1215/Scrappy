@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 from router.embed import make_embedder
-from router.router import Router
+from router.router import Router, load_examples
 
 CASES = Path(__file__).with_name("route_cases.json")
 
@@ -36,7 +36,7 @@ def main():
 
     # min_margin=-1 so decide() always returns the top route; margins are applied below
     router = Router(embedder=embedder, min_margin=-1.0, fallback=args.fallback)
-    router.add_rules([(q, r) for r, qs in data["examples"].items() for q in qs])
+    router.add_rules(load_examples())  # same seeds main.py uses
 
     labeled = [(q, r) for r, qs in data["cases"].items() for q in qs]
     vague = data.get("vague", [])

@@ -1,32 +1,17 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from router.router import Router
-from models.local import run_local_model
-from models.remote import run_remote_model
+from router.router import Router, load_examples
+from models.local import HANDLERS
 
 
 # Main entry point for Scrappy CLI
 def main():
 
-    # Temporary: Add basic routing examples to the index
-    # main.py still uses local/remote routes, so its unsure fallback is local (never remote)
-    router = Router(fallback="local")
-    # Local routing examples
-    router.add_rule("Run this locally", "local")
-    router.add_rule("Use this without an API", "local")
-    router.add_rule("Quick response", "local")
-    router.add_rule("Simple task", "local")
-    router.add_rule("Basic question", "local")
-    router.add_rule("Greetings", "local")
-    # Remote routing examples
-    router.add_rule("Use a large model", "remote")
-    router.add_rule("detailed explanation", "remote")
-    router.add_rule("complex reasoning", "remote")
-    router.add_rule("long-form content", "remote")
-    router.add_rule("advanced analysis", "remote")
-    router.add_rule("API call", "remote")
-
+    # Seed examples come from router/examples.json (the same ones the eval uses).
+    # Unsure queries fall back to talk, which stays local.
+    router = Router()
+    router.add_rules(load_examples())
 
     # Infinite loop for continuous user interaction
     while True:
@@ -38,17 +23,12 @@ def main():
         if query.lower() in {"exit", "quit"}:
             break
 
-        # Route query to decide which model to use (local or remote)
-        route = router.route(query)
+        # Route query to decide which handler runs it (code, talk or refine)
+        decision = router.decide(query)
+        response = HANDLERS[decision["route"]](query)
 
-        # Run model based on routing decision
-        if route == "local":
-            response = run_local_model(query)
-        else:
-            response = run_remote_model(query)
-
-        # Output routing decision + model response
-        print(f"Route: {route}")
+        # Output routing decision, why it was made, and the response
+        print(f"Route: {decision['route']} ({decision['reason']})")
         print(f"Scrappy: {response}")
 
 

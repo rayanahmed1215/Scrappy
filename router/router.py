@@ -1,6 +1,17 @@
+import json
+from pathlib import Path
+
 import numpy as np
 
 from router.embed import make_embedder
+
+EXAMPLES = Path(__file__).with_name("examples.json")
+
+
+def load_examples(path=EXAMPLES) -> list[tuple[str, str]]:
+    """Read {route: [example queries]} into (query, route) pairs."""
+    data = json.loads(Path(path).read_text())
+    return [(q, route) for route, queries in data.items() for q in queries]
 
 # Routes a query to the route of its closest example (cosine similarity).
 # Embeddings are unit length, so a dot product is the cosine score.
