@@ -86,3 +86,4 @@ transformers_cache/
 *.gguf
 *.pt
 *.safetensors
+CLAUDE.md

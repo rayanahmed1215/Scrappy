@@ -59,7 +59,7 @@ Scrappy is built as a set of modules. Each one works on its own with simple inpu
 
 ### Router
 
-The router turns a query into an embedding and compares it with an index of example queries using FAISS. The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
+The router turns a query into an embedding locally (all-MiniLM-L6-v2 through fastembed, no API calls) and compares it with an index of example queries using FAISS. The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
 
 Planned improvements include confidence scoring and routing that accounts for privacy, cost, available hardware, latency, and which models are available.
 
@@ -74,7 +74,7 @@ Cluster combines your machines into one system. It is made of four components:
 | **NodeWatch** | Runs on every machine and reports its health, hardware, and current tasks. Written in Rust. |
 | **Scheduler** | Uses NodeWatch reports to decide which machine runs each task, based on what the task needs and how busy each node is. Reassigns work if a node goes down. |
 | **Workplace** | The environment where models run. Loads models onto a node and runs queries through them. Models working on the same query share one context. |
-| **Infrastructure** | Docker environments for simulated nodes, networking between machines, and a hardware testbed built from repurposed computers. |
+| **Infrastructure** | Rootless Podman environments for simulated nodes, networking between machines, and a hardware testbed built from repurposed computers. |
 
 Cluster accepts model selection as an input, so it can come from simple rules, the user, or the Router.
 
@@ -82,7 +82,7 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 
 | # | Milestone | Done when |
 |---|---|---|
-| 0 | **Simulated nodes.** Develop on one host, with Docker containers acting as nodes with their own CPU and memory limits. | Components talk over the network from the start. |
+| 0 | **Simulated nodes.** Develop on one host, with Podman containers acting as nodes with their own CPU and memory limits. | Components talk over the network from the start. |
 | 1 | **NodeWatch on one node.** | It reliably reports CPU, RAM, and running tasks, and the values match the system. |
 | 2 | **Scheduler tracks and assigns.** | A submitted task runs on the node and the scheduler's record stays current. |
 | 3 | **Workplace runs a model.** | Queries sent through the scheduler return correct output across repeated runs. |
@@ -94,6 +94,7 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 
 **Working now**
 - Embedding-based router with a FAISS vector index
+- Local embeddings with fastembed (all-MiniLM-L6-v2), so routing runs fully offline after the first model download
 - Local-versus-remote route selection with a confidence threshold
 - Command-line interface
 
@@ -103,7 +104,6 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 
 **Not yet implemented**
 - Real model inference. The local and remote handlers currently return placeholder responses so the routing can be developed and tested first.
-- Local embeddings. Embeddings currently come from an API through OpenRouter during prototyping and will be replaced with a local embedding model.
 - Observe, Context, and Adaptive
 
 ## Roadmap
@@ -165,33 +165,13 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 4. Configure the embedding API
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-On Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Then add your OpenRouter API key to `.env`:
-
-```env
-OPENROUTER_API_KEY=your_api_key_here
-```
-
-### 5. Run Scrappy
+### 4. Run Scrappy
 
 ```bash
 python main.py
 ```
 
-Enter `exit` or `quit` to stop the program.
+On the first run, fastembed downloads the embedding model (about 90 MB). After that, Scrappy works offline. Enter `exit` or `quit` to stop the program.
 
 ### Example
 
