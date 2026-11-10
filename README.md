@@ -59,9 +59,9 @@ Scrappy is built as a set of modules. Each one works on its own with simple inpu
 
 ### Router
 
-The router turns a query into an embedding locally (all-MiniLM-L6-v2 through fastembed, no API calls) and compares it with example queries using cosine similarity (a numpy dot product). The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
+The router turns a query into an embedding locally (all-MiniLM-L6-v2 through fastembed, no API calls) and compares it with example queries using cosine similarity (a numpy dot product). The best route wins when it is clearly ahead of the runner-up (a margin of at least 0.10). Near ties fall back to a local default route instead of guessing.
 
-Planned improvements include confidence scoring and routing that accounts for privacy, cost, available hardware, latency, and which models are available.
+Planned improvements include routing that accounts for privacy, cost, available hardware, latency, and which models are available.
 
 See [documentation/router.md](documentation/router.md) for details.
 
@@ -96,7 +96,7 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 - Embedding-based router (cosine similarity against example queries)
 - Eval script for router accuracy and speed: `python -m tests.eval_router`
 - Local embeddings with fastembed (all-MiniLM-L6-v2), so routing runs fully offline after the first model download
-- Local-versus-remote route selection with a confidence threshold
+- Margin-based confidence: uncertain queries fall back to a local route, never remote
 - Command-line interface
 
 **In progress**
