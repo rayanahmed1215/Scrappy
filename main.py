@@ -10,7 +10,8 @@ from models.remote import run_remote_model
 def main():
 
     # Temporary: Add basic routing examples to the index
-    router = Router()
+    # main.py still uses local/remote routes, so its unsure fallback is local (never remote)
+    router = Router(fallback="local")
     # Local routing examples
     router.add_rule("Run this locally", "local")
     router.add_rule("Use this without an API", "local")

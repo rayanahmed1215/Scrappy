@@ -3,7 +3,7 @@
 
 Run from the repo root:
     python -m tests.eval_router
-    python -m tests.eval_router --model BAAI/bge-small-en-v1.5 --threshold 0.5
+    python -m tests.eval_router --model BAAI/bge-small-en-v1.5 --margin 0.08
 """
 
 import argparse
@@ -22,8 +22,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--backend", default=None, help="embedder backend (default: SCRAPPY_EMBED_BACKEND or fastembed)")
     p.add_argument("--model", default=None, help="embedding model name for the backend")
-    p.add_argument("--threshold", type=float, default=0.6)
-    p.add_argument("--fallback", default="talk", help="route used below the threshold")
+    p.add_argument("--margin", type=float, default=0.10, help="min lead of the best route over the runner-up")
+    p.add_argument("--fallback", default="talk", help="route used when the margin is too small")
     p.add_argument("--cases", default=str(CASES))
     args = p.parse_args()
 
@@ -34,8 +34,8 @@ def main():
     embedder = make_embedder(args.backend, **kwargs)
     load_s = time.perf_counter() - t0
 
-    # threshold=-1 so decide() always returns the raw best match; thresholds are applied below
-    router = Router(embedder=embedder, threshold=-1.0, fallback=args.fallback)
+    # min_margin=-1 so decide() always returns the top route; margins are applied below
+    router = Router(embedder=embedder, min_margin=-1.0, fallback=args.fallback)
     router.add_rules([(q, r) for r, qs in data["examples"].items() for q in qs])
 
     labeled = [(q, r) for r, qs in data["cases"].items() for q in qs]
@@ -48,57 +48,57 @@ def main():
         results.append(router.decide(q))
         times.append((time.perf_counter() - t) * 1000)
 
-    def pick(res, th):
-        return res["route"] if res["score"] >= th else args.fallback
+    def pick(res, m):
+        return res["route"] if res["margin"] >= m else args.fallback
 
     name = getattr(embedder, "model_name", type(embedder).__name__)
     print(f"model      {name} (dim {embedder.dim}, loaded in {load_s:.1f}s)")
     print(f"speed      {statistics.mean(times):.1f} ms/query avg, "
           f"{sorted(times)[int(len(times) * 0.95) - 1]:.1f} ms p95")
-    print(f"settings   threshold {args.threshold}, fallback '{args.fallback}'\n")
+    print(f"settings   margin {args.margin}, fallback '{args.fallback}'\n")
 
-    # accuracy at the chosen threshold
+    # accuracy at the chosen margin
     lab_res = results[: len(labeled)]
     vag_res = results[len(labeled):]
     print("route      correct")
     for route in data["cases"]:
         rows = [(q, res) for (q, r), res in zip(labeled, lab_res) if r == route]
-        ok = sum(pick(res, args.threshold) == route for _, res in rows)
+        ok = sum(pick(res, args.margin) == route for _, res in rows)
         print(f"{route:<10} {ok}/{len(rows)}")
-    total_ok = sum(pick(res, args.threshold) == r for (_, r), res in zip(labeled, lab_res))
+    total_ok = sum(pick(res, args.margin) == r for (_, r), res in zip(labeled, lab_res))
     print(f"{'overall':<10} {total_ok}/{len(labeled)} ({100 * total_ok / len(labeled):.0f}%)")
     if vague:
-        fb = sum(res["score"] < args.threshold for res in vag_res)
+        fb = sum(res["margin"] < args.margin for res in vag_res)
         print(f"{'vague':<10} {fb}/{len(vague)} fell back (higher is better)")
 
-    # score spread: if right and wrong overlap a lot, no threshold will separate them
-    right = [res["score"] for (_, r), res in zip(labeled, lab_res) if res["route"] == r]
-    wrong = [res["score"] for (_, r), res in zip(labeled, lab_res) if res["route"] != r]
-    vs = [res["score"] for res in vag_res]
-    print("\nbest-match scores   min / median / max")
-    for label, xs in [("right match", right), ("wrong match", wrong), ("vague", vs)]:
+    # margin spread: misroutes and vague queries should be near ties (small margins)
+    right = [res["margin"] for (_, r), res in zip(labeled, lab_res) if res["route"] == r]
+    wrong = [res["margin"] for (_, r), res in zip(labeled, lab_res) if res["route"] != r]
+    vs = [res["margin"] for res in vag_res]
+    print("\nmargins             min / median / max")
+    for label, xs in [("right top route", right), ("wrong top route", wrong), ("vague", vs)]:
         if xs:
             print(f"{label:<19} {min(xs):.2f} / {statistics.median(xs):.2f} / {max(xs):.2f}  (n={len(xs)})")
 
     print("\nmisroutes")
     any_miss = False
     for (q, r), res in zip(labeled, lab_res):
-        got = pick(res, args.threshold)
+        got = pick(res, args.margin)
         if got != r:
             any_miss = True
-            why = "fell back" if res["score"] < args.threshold else f"matched '{res['match']}'"
-            print(f"  want {r:<7} got {got:<7} {res['score']:.2f}  {why}  <- {q}")
+            why = (f"near tie with {res['runner_up']}" if res["margin"] < args.margin
+                   else f"matched '{res['match']}'")
+            print(f"  want {r:<7} got {got:<7} margin {res['margin']:.2f}  {why}  <- {q}")
     if not any_miss:
         print("  none")
 
-    # how accuracy moves with the threshold, to help pick one
-    print("\nthreshold  accuracy  vague fell back")
-    for th in [x / 20 for x in range(4, 17)]:  # 0.20 .. 0.80
-        acc = sum(pick(res, th) == r for (_, r), res in zip(labeled, lab_res)) / len(labeled)
-        fb = sum(res["score"] < th for res in vag_res)
-        mark = "  <- current" if abs(th - args.threshold) < 1e-9 else ""
-        print(f"  {th:.2f}     {100 * acc:5.1f}%   {fb}/{len(vague)}{mark}")
-
+    # how accuracy moves with the margin cutoff, to help pick one
+    print("\nmargin  accuracy  vague fell back")
+    for m in [x / 50 for x in range(0, 16)]:  # 0.00 .. 0.30
+        acc = sum(pick(res, m) == r for (_, r), res in zip(labeled, lab_res)) / len(labeled)
+        fb = sum(res["margin"] < m for res in vag_res)
+        mark = "  <- current" if abs(m - args.margin) < 1e-9 else ""
+        print(f"  {m:.2f}  {100 * acc:5.1f}%   {fb}/{len(vague)}{mark}")
 
 if __name__ == "__main__":
     main()
