@@ -1,4 +1,4 @@
-openai
 numpy
 faiss-cpu
+fastembed
 python-dotenv

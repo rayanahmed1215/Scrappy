@@ -1,21 +1,49 @@
-import ollama
+"""Turns text into vectors locally, for the router."""
+
 import os
+import numpy as np
+
+DEFAULT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
-# Simple Embedder class to generate embeddings for routing
-# Uses all-MiniLM-L6-v2 model for efficient embedding generation
+def normalize(vecs) -> np.ndarray:
+    """Scale each row to length 1, so dot product == cosine similarity."""
+    vecs = np.asarray(vecs, dtype="float32")
+    if vecs.ndim == 1:
+        vecs = vecs[None, :]
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0  # avoid dividing by zero on an empty vector
+    return vecs / norms
 
-class Embedder:
-    def __init__(self, model="sentence-transformers/all-MiniLM-L6-v2"):
-        self.model = model
-        self.client = OpenAI(
-            base_url = "https://openrouter.ai/api/v1",
-            api_key = os.getenv("OPENROUTER_API_KEY")
-        )
 
-    def embed(self, text: str) -> list[float]:
-        res = self.client.embeddings.create(
-            model=self.model,
-            input=text
-        )
-        return res.data[0].embedding
+class FastEmbedEmbedder:
+    """Runs all-MiniLM-L6-v2 on your machine. Downloads once, then offline."""
+
+    name = "fastembed"
+
+    def __init__(self, model: str = DEFAULT_MODEL):
+        from fastembed import (
+            TextEmbedding,
+        )  # imported here so other backends don't need it
+
+        self.model_name = model
+        self._model = TextEmbedding(model_name=model)
+        self.dim = len(self.embed("dimension probe"))  # 384 for MiniLM
+
+    def embed_batch(self, texts: list[str]) -> np.ndarray:
+        # .embed() returns a generator, so list() it before making an array
+        return normalize(np.array(list(self._model.embed(texts))))
+
+    def embed(self, text: str) -> np.ndarray:
+        return self.embed_batch([text])[0]
+
+
+BACKENDS = {"fastembed": FastEmbedEmbedder}
+
+
+def make_embedder(backend: str | None = None):
+    """Pick a backend by name, or from SCRAPPY_EMBED_BACKEND (default: fastembed)."""
+    backend = backend or os.getenv("SCRAPPY_EMBED_BACKEND", "fastembed")
+    if backend not in BACKENDS:
+        raise ValueError(f"Unknown backend {backend!r}; choose from {list(BACKENDS)}")
+    return BACKENDS[backend]()
