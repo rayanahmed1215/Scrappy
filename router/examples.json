@@ -5,7 +5,17 @@
     "Why does this program throw an error",
     "Explain what this code does",
     "Refactor this class",
-    "Write a SQL query"
+    "Write a SQL query",
+    "Style a web page with CSS or HTML",
+    "Write a shell command or script",
+    "How do I use git",
+    "Set up a Docker container",
+    "Configure a CI pipeline",
+    "Install or import a library",
+    "Call an API and handle the response",
+    "Make this code run faster",
+    "Write a regular expression",
+    "Use threads or locks in a program"
   ],
   "talk": [
     "Hi, how are you",
@@ -13,7 +23,16 @@
     "Tell me a fun fact",
     "Quick question about history",
     "What does this word mean",
-    "Recommend a movie"
+    "Recommend a movie",
+    "Hey there",
+    "Goodbye for now",
+    "Explain a simple science fact",
+    "Who was a famous person in history",
+    "Give me a quick recommendation",
+    "Answer a trivia question",
+    "How do you say a word in another language",
+    "Tell me about an animal",
+    "What should I eat tonight"
   ],
   "refine": [
     "Write an essay about",
@@ -21,6 +40,15 @@
     "Write a polished cover letter",
     "Create a thorough project plan",
     "Write a long blog post",
-    "Improve and proofread this document"
+    "Improve and proofread this document",
+    "Write a formal letter",
+    "Edit my writing for grammar and clarity",
+    "Write a full short story",
+    "Draft a professional email",
+    "Write a detailed guide",
+    "Create a lesson plan or course outline",
+    "Write a speech",
+    "Write a section of a research paper",
+    "Rewrite this so it sounds better"
   ]
 }
