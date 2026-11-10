@@ -20,7 +20,8 @@ def load_examples(path=EXAMPLES) -> list[tuple[str, str]]:
 
 
 class Router:
-    def __init__(self, embedder=None, min_margin: float = 0.10, fallback: str = "talk"):
+    # min_margin is tuned for bge-small (0.03: no confident misroutes on the eval). Re-tune if the embedder changes.
+    def __init__(self, embedder=None, min_margin: float = 0.03, fallback: str = "talk"):
         # Local embedder; backend set by SCRAPPY_EMBED_BACKEND (default: fastembed)
         self.embedder = embedder or make_embedder()
         self.min_margin = min_margin

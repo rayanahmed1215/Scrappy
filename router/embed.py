@@ -3,7 +3,8 @@
 import os
 import numpy as np
 
-DEFAULT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+# bge-small beat MiniLM on the eval (97% vs 92% on 225 queries) at ~4 ms/query; see documentation/router.md
+DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 
 
 def normalize(vecs) -> np.ndarray:
@@ -17,7 +18,7 @@ def normalize(vecs) -> np.ndarray:
 
 
 class FastEmbedEmbedder:
-    """Runs all-MiniLM-L6-v2 on your machine. Downloads once, then offline."""
+    """Runs a small embedding model (bge-small by default) on your machine. Downloads once, then offline."""
 
     name = "fastembed"
 
@@ -28,7 +29,7 @@ class FastEmbedEmbedder:
 
         self.model_name = model
         self._model = TextEmbedding(model_name=model)
-        self.dim = len(self.embed("dimension probe"))  # 384 for MiniLM
+        self.dim = len(self.embed("dimension probe"))  # 384 for bge-small and MiniLM
 
     def embed_batch(self, texts: list[str]) -> np.ndarray:
         # .embed() returns a generator, so list() it before making an array
