@@ -3,10 +3,11 @@
 
 Run from the repo root:
     python -m tests.eval_router
-    python -m tests.eval_router --model BAAI/bge-small-en-v1.5 --margin 0.08
+    python -m tests.eval_router --model sentence-transformers/all-MiniLM-L6-v2 --margin 0.10
 """
 
 import argparse
+import inspect
 import json
 import statistics
 import time
@@ -22,7 +23,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--backend", default=None, help="embedder backend (default: SCRAPPY_EMBED_BACKEND or fastembed)")
     p.add_argument("--model", default=None, help="embedding model name for the backend")
-    p.add_argument("--margin", type=float, default=0.10, help="min lead of the best route over the runner-up")
+    p.add_argument("--margin", type=float, default=inspect.signature(Router).parameters["min_margin"].default,
+                   help="min lead of the best route over the runner-up (default: the Router default)")
     p.add_argument("--fallback", default="talk", help="route used when the margin is too small")
     p.add_argument("--cases", default=str(CASES))
     args = p.parse_args()
@@ -68,8 +70,11 @@ def main():
     total_ok = sum(pick(res, args.margin) == r for (_, r), res in zip(labeled, lab_res))
     print(f"{'overall':<10} {total_ok}/{len(labeled)} ({100 * total_ok / len(labeled):.0f}%)")
     if vague:
+        # what matters is where vague queries land: the cheap fallback route, not code or refine
         fb = sum(res["margin"] < args.margin for res in vag_res)
-        print(f"{'vague':<10} {fb}/{len(vague)} fell back (higher is better)")
+        safe = sum(pick(res, args.margin) == args.fallback for res in vag_res)
+        print(f"{'vague':<10} {safe}/{len(vague)} landed on {args.fallback} "
+              f"({fb} by fallback, {safe - fb} matched {args.fallback} directly)")
 
     # margin spread: misroutes and vague queries should be near ties (small margins)
     right = [res["margin"] for (_, r), res in zip(labeled, lab_res) if res["route"] == r]
@@ -93,10 +98,10 @@ def main():
         print("  none")
 
     # how accuracy moves with the margin cutoff, to help pick one
-    print("\nmargin  accuracy  vague fell back")
+    print(f"\nmargin  accuracy  vague on {args.fallback}")
     for m in [x / 50 for x in range(0, 16)]:  # 0.00 .. 0.30
         acc = sum(pick(res, m) == r for (_, r), res in zip(labeled, lab_res)) / len(labeled)
-        fb = sum(res["margin"] < m for res in vag_res)
+        fb = sum(pick(res, m) == args.fallback for res in vag_res)
         mark = "  <- current" if abs(m - args.margin) < 1e-9 else ""
         print(f"  {m:.2f}  {100 * acc:5.1f}%   {fb}/{len(vague)}{mark}")
 
