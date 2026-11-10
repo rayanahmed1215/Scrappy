@@ -4,10 +4,10 @@ The router decides how a query should run. It is currently a working prototype t
 
 ## How it works
 
-1. **Build the index.** When Scrappy starts, a set of example queries for each route is converted into embeddings and stored in a FAISS index (`router/index.py`).
+1. **Embed the examples.** When Scrappy starts, a set of example queries for each route is converted into embeddings in one batch and kept in a numpy array.
 2. **Embed the query.** A new query is converted into an embedding with the same model (`router/embed.py`).
-3. **Find the closest example.** FAISS compares the query to the stored examples using cosine similarity. Vectors are L2-normalized, so the inner-product index returns cosine scores.
-4. **Decide.** If the closest example's score meets the confidence threshold (currently 0.6), the query takes that example's route. Otherwise it falls back to the remote route (`router/router.py`).
+3. **Find the closest example.** Vectors are unit length, so a dot product against every example gives the cosine similarity scores.
+4. **Decide.** If the closest example's score meets the confidence threshold (currently 0.6), the query takes that example's route. Otherwise it falls back to the remote route (`router/router.py`). `Router.decide(query)` returns the route plus the score, the matched example, and the reason.
 
 Routing examples are added with `Router.add_rule(query, route)`. They are currently defined in `main.py`.
 
@@ -16,15 +16,18 @@ Routing examples are added with `Router.add_rule(query, route)`. They are curren
 | File | Purpose |
 |---|---|
 | `router/router.py` | Routing logic and confidence threshold |
-| `router/embed.py` | Converts text into embeddings (`all-MiniLM-L6-v2` through OpenRouter, 384 dimensions) |
-| `router/index.py` | FAISS vector index with metadata for each example |
+| `router/embed.py` | Converts text into embeddings locally with fastembed (`all-MiniLM-L6-v2` by default, 384 dimensions) |
 | `router/intent.py` | Early keyword-based intent classifier for the planned intent layer (not yet wired in) |
 
 ## Known limitations
 
 - Accuracy is limited by the small number of routing examples.
-- Embeddings currently come from an API, which conflicts with Scrappy's local-first goal. A local embedding model will replace it.
+- Good thresholds depend on the embedding model. MiniLM scores run low, so the 0.6 threshold rejects most correct matches.
 - Only two routes exist: local and remote.
+
+## Measuring accuracy
+
+`python -m tests.eval_router` routes the labeled queries in `tests/route_cases.json` and prints accuracy per route, speed per query, misroutes, and accuracy across thresholds. Use `--model` to compare embedders and `--threshold` / `--fallback` to try settings.
 
 ## Planned improvements
 

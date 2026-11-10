@@ -1,0 +1,80 @@
+{
+  "_about": "examples seed the router; cases are held-out queries with the route they should get. vague cases should hit the fallback. Keep cases different from examples.",
+  "examples": {
+    "code": [
+      "Write a Python function",
+      "Fix this bug in my code",
+      "Why does this program throw an error",
+      "Explain what this code does",
+      "Refactor this class",
+      "Write a SQL query"
+    ],
+    "talk": [
+      "Hi, how are you",
+      "What is the capital of a country",
+      "Tell me a fun fact",
+      "Quick question about history",
+      "What does this word mean",
+      "Recommend a movie"
+    ],
+    "refine": [
+      "Write an essay about",
+      "Draft a detailed report on",
+      "Write a polished cover letter",
+      "Create a thorough project plan",
+      "Write a long blog post",
+      "Improve and proofread this document"
+    ]
+  },
+  "cases": {
+    "code": [
+      "How do I reverse a list in JavaScript?",
+      "My Rust program panics with index out of bounds",
+      "Write a bash script that renames all .txt files",
+      "TypeError: 'NoneType' object is not subscriptable, what does it mean?",
+      "Convert this loop into a list comprehension",
+      "How do I read a CSV file with pandas",
+      "Implement binary search in C",
+      "Why is my React component re-rendering so much?",
+      "Add unit tests for this function",
+      "What's the difference between a process and a thread in code",
+      "Make this regex match email addresses",
+      "Set up a Flask endpoint that returns JSON"
+    ],
+    "talk": [
+      "hello there",
+      "Good morning!",
+      "Who wrote Pride and Prejudice?",
+      "How many legs does a spider have?",
+      "What's a good name for a cat?",
+      "Thanks, that helped",
+      "What time zone is New York in?",
+      "Can you tell me a joke?",
+      "Is a tomato a fruit?",
+      "What's your favorite color?",
+      "How far is the moon?",
+      "Suggest a board game for four people"
+    ],
+    "refine": [
+      "Write a five paragraph essay on climate policy",
+      "Draft a formal proposal for a student club budget",
+      "Write a well structured research summary on renewable energy",
+      "Polish this paragraph so it sounds professional",
+      "Write a detailed grant application for a robotics lab",
+      "Create a comprehensive study guide for organic chemistry",
+      "Rewrite my personal statement to be more compelling",
+      "Write an in-depth article comparing electric cars",
+      "Produce a full marketing plan for a small bakery",
+      "Draft a long speech for a graduation ceremony",
+      "Edit this report for clarity and flow",
+      "Write a complete onboarding handbook for new members"
+    ]
+  },
+  "vague": [
+    "hmm",
+    "ok",
+    "do the thing",
+    "can you help",
+    "what about the other one"
+  ]
+}

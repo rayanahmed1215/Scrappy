@@ -59,7 +59,7 @@ Scrappy is built as a set of modules. Each one works on its own with simple inpu
 
 ### Router
 
-The router turns a query into an embedding locally (all-MiniLM-L6-v2 through fastembed, no API calls) and compares it with an index of example queries using FAISS. The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
+The router turns a query into an embedding locally (all-MiniLM-L6-v2 through fastembed, no API calls) and compares it with example queries using cosine similarity (a numpy dot product). The closest match decides the route when it is confident enough, and uncertain queries fall back to a default route.
 
 Planned improvements include confidence scoring and routing that accounts for privacy, cost, available hardware, latency, and which models are available.
 
@@ -93,7 +93,8 @@ Cluster accepts model selection as an input, so it can come from simple rules, t
 ## Current status
 
 **Working now**
-- Embedding-based router with a FAISS vector index
+- Embedding-based router (cosine similarity against example queries)
+- Eval script for router accuracy and speed: `python -m tests.eval_router`
 - Local embeddings with fastembed (all-MiniLM-L6-v2), so routing runs fully offline after the first model download
 - Local-versus-remote route selection with a confidence threshold
 - Command-line interface
@@ -129,7 +130,7 @@ Longer term, Scrappy aims to split complex queries into subtasks that run in par
 ```text
 Scrappy/
 ├── main.py            # CLI entry point
-├── router/            # Router: embeddings, FAISS index, routing logic
+├── router/            # Router: embeddings and routing logic
 ├── models/            # Placeholder local and remote handlers
 └── documentation/     # Devlogs, design notes, and module docs
 ```

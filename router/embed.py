@@ -41,9 +41,10 @@ class FastEmbedEmbedder:
 BACKENDS = {"fastembed": FastEmbedEmbedder}
 
 
-def make_embedder(backend: str | None = None):
-    """Pick a backend by name, or from SCRAPPY_EMBED_BACKEND (default: fastembed)."""
+def make_embedder(backend: str | None = None, **kwargs):
+    """Pick a backend by name, or from SCRAPPY_EMBED_BACKEND (default: fastembed).
+    Extra kwargs (e.g. model=...) go to the backend."""
     backend = backend or os.getenv("SCRAPPY_EMBED_BACKEND", "fastembed")
     if backend not in BACKENDS:
         raise ValueError(f"Unknown backend {backend!r}; choose from {list(BACKENDS)}")
-    return BACKENDS[backend]()
+    return BACKENDS[backend](**kwargs)
