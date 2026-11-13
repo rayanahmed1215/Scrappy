@@ -51,5 +51,6 @@ Unit tests: `python -m pytest` runs offline with a fake embedder. `SCRAPPY_SLOW=
 - Routing that accounts for privacy, cost, available hardware, latency, and model availability
 - Storing past queries with their routes and outcomes, so successful routes inform future ones
 - Handing routing decisions to Cluster as its model-selection input
+- Revisiting a vector index (FAISS or similar) beyond the MVP. The numpy dot product is enough for the current 46 seeds, but if the example set grows to tens of thousands (for example from stored past queries), a full scan stops being free. Margin scoring needs the best score per route, so an index would need a large enough top-k or one index per route. The search is one line in `Router.decide()`, so the swap stays inside the router.
 
 For the history of how the router evolved, see the devlogs in `documentation/devlogs/`.
