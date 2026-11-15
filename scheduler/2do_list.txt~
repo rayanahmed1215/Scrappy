@@ -1,0 +1,5 @@
+Is scheduler simply following nodewatch reports, or will it actively poll health()?
+
+How does scheduler keep track of which nodes are down? Is it the registry? or is there something in cluster/ that tracks node id, model/workspace & health?
+
+since the scheduler has to reassign the job to a different node if the one previously assigned 2 goes down, cluster also has to keep track of which tasks are in progress/in a queue somewhere scheduler can see. If were doing that, would we want to have the nodes periodically share a snapshot of it's work to update the in progress task list so that if one goes down it will be able to reassign another node approximately where the first one left off?

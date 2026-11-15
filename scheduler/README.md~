@@ -1,0 +1,14 @@
+# SCHEDULER: Master Outline
+
+## Purpose
+The *Scheduler*'s essential job is to allocate a certain job (query/prompt) to the most appropriate node. The *Scheduler* lives downstream of the *Router* and their roles are similar, however while the *Router* is meant to be dynamic and trainable, the *Scheduler* is something that behaves statically.
+
+## Specs
+
+### Input
+- nodewatch reports
+- job/route packet from router
+
+### Output
+
+## Architecture
